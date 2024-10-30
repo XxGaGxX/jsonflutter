@@ -39,7 +39,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-
       _counter++;
     });
   }
@@ -63,21 +62,28 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-
         child: Column(
-
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextButton(onPressed: ScriviJson,
-            style: ButtonStyle(
-              backgroundColor : WidgetStateProperty.all<Color>(Colors.blue),
-               foregroundColor: WidgetStateProperty.all<Color>(Colors.white)
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextButton(
+                onPressed: ScriviJson,
+                style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all<Color>(Colors.blue),
+                    foregroundColor:
+                        WidgetStateProperty.all<Color>(Colors.white)),
+                child: Text('Scrivi Json'),
               ),
-            child: Text('Scrivi Json'),
-            ),
-            TextButton(onPressed: LeggiJson, style: ButtonStyle(backgroundColor: WidgetStateProperty.all<Color>(Colors.blue), foregroundColor: WidgetStateProperty.all<Color>(Colors.white)), child: Text("Leggi Json"), )
-          ]
-        ),
+              TextButton(
+                onPressed: LeggiJson,
+                style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all<Color>(Colors.blue),
+                    foregroundColor:
+                        WidgetStateProperty.all<Color>(Colors.white)),
+                child: Text("Leggi Json"),
+              )
+            ]),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
@@ -87,9 +93,40 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void ScriviJson() {
+  Future<void> ScriviJson() async {
+    final path = await GetPath();
+    final file = File(path);
+    final message = {
+      'message': 'Benvenuto',
+      'time': DateTime.now().toIso8601String()
+    };
+    final jsonString = jsonEncode(message);
+    await file.writeAsString(jsonString);
+
+    if (mounted) {
+      QuickAlert.show(
+          context: context,
+          type: QuickAlertType.success,
+          text: "Il JSON è stato scritto con successo");
+    }
   }
 
-  void LeggiJson() {
+  Future<String> GetPath() async {
+    final dir = await getApplicationCacheDirectory();
+    return '${dir.path}/welcome_message.json';
+  }
+
+  void LeggiJson() async {
+    final path = await GetPath();
+    final file = File(path);
+    final JsonContent;
+
+    if (file.exists() == true) {
+      final JsonContent = await file.readAsString();
+      QuickAlert.show(
+          context: context, type: QuickAlertType.info, text: JsonContent);
+    } else {
+      QuickAlert.show(context: context, type: QuickAlertType.error, text: "Il file non esiste");
+    }
   }
 }
