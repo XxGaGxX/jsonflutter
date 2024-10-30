@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final file = File(path);
     final JsonContent;
 
-    if (file.exists() == true) {
+    if (await file.exists()) {
       final JsonContent = await file.readAsString();
       QuickAlert.show(
           context: context, type: QuickAlertType.info, text: JsonContent);
