@@ -82,7 +82,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
                 child: Text("Leggi Json"),
-              )
+              ),
+              TextButton(
+                onPressed: CancellaJson,
+                style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all<Color>(Colors.blue),
+                    foregroundColor:
+                        WidgetStateProperty.all<Color>(Colors.white)),
+                child: Text("Cancella Json"))
             ]),
       ),
       floatingActionButton: FloatingActionButton(
@@ -98,17 +106,20 @@ class _MyHomePageState extends State<MyHomePage> {
     final file = File(path);
     final message = {
       'message': 'Benvenuto',
-      'time': DateTime.now().toIso8601String()
+      'time': DateTime.now().add(const Duration(hours: 1)).toIso8601String()
     };
     final jsonString = jsonEncode(message);
     await file.writeAsString(jsonString);
-
     if (mounted) {
-      QuickAlert.show(
-          context: context,
-          type: QuickAlertType.success,
-          text: "Il JSON è stato scritto con successo");
+      _showAlert("Il file è stato scritto con successo",QuickAlertType.success);
     }
+  }
+
+  void _showAlert(String s, QuickAlertType t){
+    QuickAlert.show(
+          context: context,
+          type: t,
+          text: s);
   }
 
   Future<String> GetPath() async {
@@ -123,10 +134,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (await file.exists()) {
       final JsonContent = await file.readAsString();
-      QuickAlert.show(
-          context: context, type: QuickAlertType.info, text: JsonContent);
+      _showAlert(JsonContent,QuickAlertType.info);
     } else {
-      QuickAlert.show(context: context, type: QuickAlertType.error, text: "Il file non esiste");
+      _showAlert("Errore",QuickAlertType.error);
     }
+  }
+
+  void CancellaJson() async {
+    final path = await GetPath();
+    final file = File(path);
+
+    try{
+      if(await file.exists()){
+      file.delete();
+      _showAlert("File Json eliminato", QuickAlertType.success);
+    }
+    }catch(e){
+      _showAlert(e.toString(), QuickAlertType.error);
+    }
+    
   }
 }
