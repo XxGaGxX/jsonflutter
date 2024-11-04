@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -35,13 +37,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         WidgetStateProperty.all<Color>(Colors.blue),
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
-                child: Text('Scrivi Json'),
+                child: const Text('Scrivi Json'),
               ),
               TextButton(
                 onPressed: LeggiJson,
@@ -81,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         WidgetStateProperty.all<Color>(Colors.blue),
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
-                child: Text("Leggi Json"),
+                child: const Text("Leggi Json"),
               ),
               TextButton(
                 onPressed: CancellaJson,
@@ -90,17 +85,24 @@ class _MyHomePageState extends State<MyHomePage> {
                         WidgetStateProperty.all<Color>(Colors.blue),
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
-                child: Text("Cancella Json"))
+                child: const Text("Cancella Json")),
+              const SizedBox(
+                width: 255.0,
+                child: TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Scrivi'
+                  ),
+                ),
+              )
+      
             ]),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+
     );
   }
 
+  // ignore: non_constant_identifier_names
   Future<void> ScriviJson() async {
     final path = await GetPath();
     final file = File(path);
@@ -130,13 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void LeggiJson() async {
     final path = await GetPath();
     final file = File(path);
-    final JsonContent;
 
     if (await file.exists()) {
       final JsonContent = await file.readAsString();
       _showAlert(JsonContent,QuickAlertType.info);
     } else {
-      _showAlert("Errore",QuickAlertType.error);
+      _showAlert("Errore, il file non esiste",QuickAlertType.error);
     }
   }
 
