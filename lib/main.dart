@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -35,13 +37,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  String jsonMessage = "";
+  final TextEditingController txt = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -72,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         WidgetStateProperty.all<Color>(Colors.blue),
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
-                child: Text('Scrivi Json'),
+                child: const Text('Scrivi Json'),
               ),
               TextButton(
                 onPressed: LeggiJson,
@@ -81,34 +79,76 @@ class _MyHomePageState extends State<MyHomePage> {
                         WidgetStateProperty.all<Color>(Colors.blue),
                     foregroundColor:
                         WidgetStateProperty.all<Color>(Colors.white)),
-                child: Text("Leggi Json"),
+                child: const Text("Leggi Json"),
+              ),
+              TextButton(
+                  onPressed: CancellaJson,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          WidgetStateProperty.all<Color>(Colors.blue),
+                      foregroundColor:
+                          WidgetStateProperty.all<Color>(Colors.white)),
+                  child: const Text("Cancella Json")),
+              SizedBox(
+                width: 255.0,
+                height: 100,
+                child: TextField(
+                  controller: txt,
+                  keyboardType: TextInputType.multiline,
+                  minLines: 1,
+                  maxLines: null,
+                  onChanged: textChanged,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(), labelText: 'Scrivi'),
+                ),
               )
             ]),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
+  // ignore: duplicate_ignore
+  // ignore: non_constant_identifier_names
   Future<void> ScriviJson() async {
     final path = await GetPath();
     final file = File(path);
-    final message = {
-      'message': 'Benvenuto',
-      'time': DateTime.now().toIso8601String()
-    };
-    final jsonString = jsonEncode(message);
-    await file.writeAsString(jsonString);
 
-    if (mounted) {
-      QuickAlert.show(
-          context: context,
-          type: QuickAlertType.success,
-          text: "Il JSON è stato scritto con successo");
+    try {
+      String jsonString1 = await file.readAsString();
+
+      final message = {
+        'message': ((jsonMessage.isEmpty) ? "Benvenuto" : jsonMessage),
+        'time': DateTime.now().add(const Duration(hours: 1)).toIso8601String()
+      };
+
+      final stringJsonMessage = jsonEncode(message);
+      jsonString1 += stringJsonMessage;
+
+      await file.writeAsString(jsonString1);
+
+      txt.text += message["time"].toString()+"\n";
+
+      if (mounted) {
+        _showAlert("Il file è stato scritto con successo");
+      }
+    } catch (e) {
+      final message = {
+        'message': ((jsonMessage.isEmpty) ? "Benvenuto" : jsonMessage),
+        'time': DateTime.now().add(const Duration(hours: 1)).toIso8601String()
+      };
+
+      final jsonString = jsonEncode(message);
+      await file.writeAsString(jsonString);
+
+      txt.text += DateTime.now().add(const Duration(hours: 1)).toIso8601String();
+      if (mounted) {
+        _showAlert("Il file è stato scritto con successo");
+      }
     }
+  }
+
+  void _showAlert(String s) {
+    QuickAlert.show(context: context, text: s, type: QuickAlertType.info);
   }
 
   Future<String> GetPath() async {
@@ -119,14 +159,32 @@ class _MyHomePageState extends State<MyHomePage> {
   void LeggiJson() async {
     final path = await GetPath();
     final file = File(path);
-    final JsonContent;
 
-    if (file.exists() == true) {
+    if (await file.exists()) {
       final JsonContent = await file.readAsString();
-      QuickAlert.show(
-          context: context, type: QuickAlertType.info, text: JsonContent);
+      _showAlert(JsonContent);
     } else {
-      QuickAlert.show(context: context, type: QuickAlertType.error, text: "Il file non esiste");
+      _showAlert("Errore, il file non esiste");
     }
+  }
+
+  void CancellaJson() async {
+    final path = await GetPath();
+    final file = File(path);
+
+    try {
+      if (await file.exists()) {
+        file.delete();
+        _showAlert("File Json eliminato");
+      }
+    } catch (e) {
+      _showAlert(e.toString());
+    }
+
+    txt.text = "";
+  }
+
+  void textChanged(String value) {
+    jsonMessage = value;
   }
 }
