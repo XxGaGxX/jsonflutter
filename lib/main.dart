@@ -39,6 +39,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String jsonMessage = "";
   final TextEditingController txt = TextEditingController();
+  final TextEditingController textInput = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +64,18 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              SizedBox(
+                width: 255.0,
+                height: 100,
+                child: TextField(
+                    controller: textInput,
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder(), labelText: 'Scrivi'),
+                    keyboardType: TextInputType.multiline,
+                    minLines: 1,
+                    maxLines: null,
+                    onChanged: textChanged),
+              ),
               TextButton(
                 onPressed: ScriviJson,
                 style: ButtonStyle(
@@ -94,12 +107,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 height: 100,
                 child: TextField(
                   controller: txt,
+                  readOnly: true,
                   keyboardType: TextInputType.multiline,
                   minLines: 1,
                   maxLines: null,
-                  onChanged: textChanged,
                   decoration: const InputDecoration(
-                      border: OutlineInputBorder(), labelText: 'Scrivi'),
+                      border: OutlineInputBorder(), labelText: 'Tempo'),
                 ),
               )
             ]),
@@ -126,10 +139,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
       await file.writeAsString(jsonString1);
 
-      txt.text += message["time"].toString()+"\n";
+      txt.text += '\n${message["time"]}';
 
       if (mounted) {
-        _showAlert("Il file è stato scritto con successo");
+        _showAlertSuccess("Il file è stato scritto con successo");
       }
     } catch (e) {
       final message = {
@@ -140,14 +153,23 @@ class _MyHomePageState extends State<MyHomePage> {
       final jsonString = jsonEncode(message);
       await file.writeAsString(jsonString);
 
-      txt.text += DateTime.now().add(const Duration(hours: 1)).toIso8601String();
+      txt.text +=
+          DateTime.now().add(const Duration(hours: 1)).toIso8601String();
       if (mounted) {
-        _showAlert("Il file è stato scritto con successo");
+        _showAlertSuccess("Il file è stato scritto con successo");
       }
     }
   }
 
-  void _showAlert(String s) {
+  void _showAlertSuccess(String s) {
+    QuickAlert.show(context: context, text: s, type: QuickAlertType.success);
+  }
+
+  void _showAlertError(String s) {
+    QuickAlert.show(context: context, text: s, type: QuickAlertType.error);
+  }
+
+  void _showAlertInfo(String s) {
     QuickAlert.show(context: context, text: s, type: QuickAlertType.info);
   }
 
@@ -162,9 +184,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (await file.exists()) {
       final JsonContent = await file.readAsString();
-      _showAlert(JsonContent);
+      _showAlertSuccess(JsonContent);
     } else {
-      _showAlert("Errore, il file non esiste");
+      _showAlertError("Errore, il file non esiste");
     }
   }
 
@@ -175,13 +197,16 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       if (await file.exists()) {
         file.delete();
-        _showAlert("File Json eliminato");
+        _showAlertSuccess("File Json eliminato");
+      } else {
+        _showAlertInfo("Il file che si vuole eliminare non esiste");
       }
     } catch (e) {
-      _showAlert(e.toString());
+      _showAlertError("Errore durante l'eliminazione del file ${e.toString()}");
     }
 
     txt.text = "";
+    textInput.text = "";
   }
 
   void textChanged(String value) {
